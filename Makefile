@@ -32,8 +32,8 @@ export GOROOT := # Unset
 all: $(APK)
 
 tag_release:
-	sed -i'.bak' 's/versionCode $(VERSIONCODE)/versionCode $(VERSIONCODE_PLUSONE)/' android/build.gradle && rm android/build.gradle.bak
-	sed -i'.bak' 's/versionName .*/versionName "$(VERSION_LONG)"/' android/build.gradle && rm android/build.gradle.bak
+	sed -i'.bak' 's/versionCode [[:digit:]]\+/versionCode $(VERSIONCODE_PLUSONE)/' android/build.gradle
+	sed -i'.bak' 's/versionName .*/versionName "$(VERSION_LONG)"/' android/build.gradle
 	git commit -sm "android: bump version code" android/build.gradle
 	git tag -a "$(VERSION_LONG)"
 
@@ -65,9 +65,10 @@ rundebug: $(DEBUG_APK)
 # This is useful for testing on e.g. Amazon Fire Stick devices.
 tailscale-fdroid.apk: toolchain
 	mkdir -p android/libs
-	go run gioui.org/cmd/gogio -buildmode archive -target android -appid $(APPID) -tags novulkan,tailscale_go -o $(AAR) github.com/tailscale/tailscale-android/cmd/tailscale
+	#gogio -buildmode archive -target android -appid $(APPID) -tags novulkan -o $(AAR) github.com/tailscale/tailscale-android/cmd/tailscale
 	(cd android && ./gradlew test assembleFdroidDebug)
 	mv android/build/outputs/apk/fdroid/debug/android-fdroid-debug.apk $@
+	adb install tailscale-fdroid.apk
 
 # This target is also used by the F-Droid builder.
 release_aar: toolchain

@@ -2,6 +2,8 @@ module github.com/tailscale/tailscale-android
 
 go 1.20
 
+replace tailscale.com => ./MirageClient
+
 require (
 	eliasnaur.com/font v0.0.0-20220124212145-832bb8fc08c3
 	gioui.org v0.0.0-20230206180804-32c6a9b10d0b
@@ -10,7 +12,7 @@ require (
 	github.com/tailscale/wireguard-go v0.0.0-20230410165232-af172621b4dd
 	golang.org/x/exp/shiny v0.0.0-20220827204233-334a2380cb91
 	golang.org/x/sys v0.8.0
-	inet.af/netaddr v0.0.0-20220617031823-097006376321
+	inet.af/netaddr v0.0.0-20230525184311-b8eac61e914a
 	tailscale.com v1.1.1-0.20230519211526-e3cb982139c2
 )
 
@@ -45,6 +47,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/btree v1.1.2 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/hdevalence/ed25519consensus v0.1.0 // indirect
 	github.com/illarion/gonotify v1.0.1 // indirect
 	github.com/insomniacslk/dhcp v0.0.0-20230407062729-974c6f05fe16 // indirect
@@ -53,13 +56,18 @@ require (
 	github.com/jsimonetti/rtnetlink v1.3.2 // indirect
 	github.com/klauspost/compress v1.16.5 // indirect
 	github.com/kortschak/wol v0.0.0-20200729010619-da482cc4850a // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.18 // indirect
 	github.com/mdlayher/genetlink v1.3.2 // indirect
 	github.com/mdlayher/netlink v1.7.2 // indirect
 	github.com/mdlayher/sdnotify v1.0.0 // indirect
 	github.com/mdlayher/socket v0.4.1 // indirect
 	github.com/mitchellh/go-ps v1.0.0 // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/robfig/cron/v3 v3.0.1 // indirect
+	github.com/rs/zerolog v1.29.0 // indirect
 	github.com/tailscale/certstore v0.1.1-0.20220316223106-78d6e1c49d8d // indirect
 	github.com/tailscale/golang-x-crypto v0.0.0-20221115211329-17a3db2c30d2 // indirect
 	github.com/tailscale/goupnp v1.0.1-0.20210804011211-c64d0f06ea05 // indirect
@@ -72,7 +80,7 @@ require (
 	go4.org/intern v0.0.0-20211027215823-ae77deb06f29 // indirect
 	go4.org/mem v0.0.0-20220726221520-4f986261bf13 // indirect
 	go4.org/netipx v0.0.0-20230303233057-f1b76eb4bb35 // indirect
-	go4.org/unsafe/assume-no-moving-gc v0.0.0-20230209150437-ee73d164e760 // indirect
+	go4.org/unsafe/assume-no-moving-gc v0.0.0-20230525183740-e7c30c78aeb2 // indirect
 	golang.org/x/crypto v0.8.0 // indirect
 	golang.org/x/exp v0.0.0-20230425010034-47ecfdc1ba53 // indirect
 	golang.org/x/image v0.7.0 // indirect

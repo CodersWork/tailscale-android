@@ -349,6 +349,7 @@ func (ui *UI) setMenuShown(v bool) {
 
 func (ui *UI) layout(gtx layout.Context, sysIns system.Insets, state *clientState) []UIEvent {
 	// "Get started".
+	ui.intro.show = false
 	if ui.intro.show {
 		if ui.intro.start.Clicked() {
 			ui.store.WriteBool(keyShowIntro, false)
