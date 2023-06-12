@@ -35,9 +35,6 @@ import (
 
 	_ "embed"
 
-	"eliasnaur.com/font/roboto/robotobold"
-	"eliasnaur.com/font/roboto/robotoregular"
-
 	_ "image/png"
 )
 
@@ -216,6 +213,10 @@ var (
 	tailscaleLogo []byte
 	//go:embed google.png
 	googleLogo []byte
+	//go:embed NotoSansSC-Regular.otf
+	notoSansSCRegular []byte
+	//go:embed NotoSansSC-Bold.otf
+	notoSansSCBold []byte
 )
 
 func newUI(store *stateStore) (*UI, error) {
@@ -247,11 +248,11 @@ func newUI(store *stateStore) (*UI, error) {
 	if err != nil {
 		return nil, err
 	}
-	face, err := opentype.Parse(robotoregular.TTF)
+	face, err := opentype.Parse(notoSansSCRegular)
 	if err != nil {
 		panic(fmt.Sprintf("failed to parse font: %v", err))
 	}
-	faceBold, err := opentype.Parse(robotobold.TTF)
+	faceBold, err := opentype.Parse(notoSansSCBold)
 	if err != nil {
 		panic(fmt.Sprintf("failed to parse font: %v", err))
 	}
