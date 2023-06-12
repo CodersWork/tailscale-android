@@ -4,7 +4,7 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
-		classpath 'com.android.tools.build:gradle:4.2.0'
+		classpath 'com.android.tools.build:gradle:8.0.2'
 	}
 }
 
@@ -43,6 +43,7 @@ android {
 			// The play flavor contains all features and is for the Play Store.
 		}
 	}
+	namespace 'com.tailscale.ipn'
 }
 
 dependencies {
@@ -52,7 +53,7 @@ dependencies {
 	implementation "androidx.work:work-runtime:2.7.0"
 	implementation ':ipn@aar'
 	implementation 'com.alibaba.android:ddopenauth:1.5.0.8'
-	testCompile "junit:junit:4.12"
+	testImplementation "junit:junit:4.12"
 
 	// Non-free dependencies.
 	playImplementation 'com.google.android.gms:play-services-auth:18.0.0'
