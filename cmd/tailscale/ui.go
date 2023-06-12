@@ -1507,7 +1507,7 @@ func statusString(state ipn.State) string {
 	case ipn.NeedsMachineAuth:
 		return "Awaiting Approval"
 	case ipn.NeedsLogin:
-		return "Tailscale"
+		return "蜃境网络"
 	default:
 		return "Loading..."
 	}

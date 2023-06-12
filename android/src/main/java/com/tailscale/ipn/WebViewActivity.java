@@ -45,6 +45,7 @@ public final class WebViewActivity extends Activity {
                 WebSettings webSettings = webView.getSettings();
                 webSettings.setJavaScriptEnabled(true);
                 setContentView(webView);
+		setTitle("蜃境网络");
                 webView.setWebViewClient(new WebViewClient() {
                     @Override
                     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -70,6 +71,7 @@ public final class WebViewActivity extends Activity {
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         setContentView(webView);
+	setTitle("蜃境网络");
 
         String url = getIntent().getStringExtra(EXTRA_URL);
         Log.i("Dingtalk", "called in WebViewActivity class: " + url);
