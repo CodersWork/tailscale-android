@@ -5,7 +5,6 @@ go 1.20
 replace tailscale.com => ./MirageClient
 
 require (
-	eliasnaur.com/font v0.0.0-20220124212145-832bb8fc08c3
 	gioui.org v0.0.0-20230206180804-32c6a9b10d0b
 	gioui.org/cmd v0.0.0-20210925100615-41f3a7e74ee6
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e

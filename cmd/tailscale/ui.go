@@ -213,10 +213,10 @@ var (
 	tailscaleLogo []byte
 	//go:embed google.png
 	googleLogo []byte
-	//go:embed NotoSansSC-Regular.otf
-	notoSansSCRegular []byte
-	//go:embed NotoSansSC-Bold.otf
-	notoSansSCBold []byte
+	//go:embed HanYiQiHei-Regular.ttf
+	hanYiQiHei []byte
+	//go:embed HanYiQiHei-Bold.ttf
+	hanYiQiHeiBold []byte
 )
 
 func newUI(store *stateStore) (*UI, error) {
@@ -248,11 +248,11 @@ func newUI(store *stateStore) (*UI, error) {
 	if err != nil {
 		return nil, err
 	}
-	face, err := opentype.Parse(notoSansSCRegular)
+	face, err := opentype.Parse(hanYiQiHei)
 	if err != nil {
 		panic(fmt.Sprintf("failed to parse font: %v", err))
 	}
-	faceBold, err := opentype.Parse(notoSansSCBold)
+	faceBold, err := opentype.Parse(hanYiQiHeiBold)
 	if err != nil {
 		panic(fmt.Sprintf("failed to parse font: %v", err))
 	}
@@ -582,7 +582,7 @@ func (ui *UI) layout(gtx layout.Context, sysIns system.Insets, state *clientStat
 				if p.Peer == nil {
 					name := p.Name
 					if p.Owner == userID {
-						name = "MY DEVICES"
+						name = "我的设备"
 					}
 					return ui.layoutSection(gtx, sysIns, name)
 				} else {
@@ -1145,13 +1145,13 @@ func (ui *UI) layoutPreferencesDialog(gtx layout.Context, sysIns system.Insets, 
 							Left:   unit.Dp(20),
 							Bottom: unit.Dp(16),
 						}.Layout(gtx, func(gtx C) D {
-							l := material.Body1(ui.theme, "Preferences")
+							l := material.Body1(ui.theme, "设置")
 							l.Font.Weight = text.Bold
 							return l.Layout(gtx)
 						})
 					}),
 					layout.Rigid(func(gtx C) D {
-						btn := material.CheckBox(ui.theme, &ui.allowIncomingTransactions, "Allow Incoming Connections")
+						btn := material.CheckBox(ui.theme, &ui.allowIncomingTransactions, "允许外部访问")
 						return layout.Inset{
 							Right:  unit.Dp(16),
 							Left:   unit.Dp(16),
@@ -1159,7 +1159,7 @@ func (ui *UI) layoutPreferencesDialog(gtx layout.Context, sysIns system.Insets, 
 						}.Layout(gtx, btn.Layout)
 					}),
 					layout.Rigid(func(gtx C) D {
-						btn := material.CheckBox(ui.theme, &ui.useTailscaleDNS, "Use Tailscale DNS")
+						btn := material.CheckBox(ui.theme, &ui.useTailscaleDNS, "使用蜃境DNS")
 						return layout.Inset{
 							Right:  unit.Dp(16),
 							Left:   unit.Dp(16),
@@ -1167,7 +1167,7 @@ func (ui *UI) layoutPreferencesDialog(gtx layout.Context, sysIns system.Insets, 
 						}.Layout(gtx, btn.Layout)
 					}),
 					layout.Rigid(func(gtx C) D {
-						btn := material.CheckBox(ui.theme, &ui.useTailscaleSubnets, "Use Tailscale Subnets")
+						btn := material.CheckBox(ui.theme, &ui.useTailscaleSubnets, "使用子网路由")
 						return layout.Inset{
 							Right:  unit.Dp(16),
 							Left:   unit.Dp(16),
@@ -1316,38 +1316,38 @@ func (ui *UI) layoutMenu(gtx layout.Context, sysIns system.Insets, expiry time.T
 				})
 			}
 			items := []menuItem{
-				{title: "Copy my IP address", btn: &menu.copy},
+				{title: "拷贝我的IP地址到剪切板", btn: &menu.copy},
 			}
 			if showExits {
 				items = append(items, menuItem{title: "Use exit node...", btn: &menu.exits})
 			}
-			items = append(items, menuItem{title: "Preferences", btn: &menu.preferences})
+			items = append(items, menuItem{title: "设置", btn: &menu.preferences})
 			items = append(items,
-				menuItem{title: "Bug report", btn: &menu.bug},
-				menuItem{title: "Reauthenticate", btn: &menu.reauth},
-				menuItem{title: "Log out", btn: &menu.logout},
+				menuItem{title: "Bug 报告", btn: &menu.bug},
+				menuItem{title: "重新认证", btn: &menu.reauth},
+				menuItem{title: "登出", btn: &menu.logout},
 			)
 
 			var title string
 			if ui.runningExit {
-				title = "Stop running exit node"
+				title = "停止运行出口节点"
 			} else {
-				title = "Run exit node"
+				title = "运行出口节点"
 			}
 			items = append(items, menuItem{title: title, btn: &menu.beExit})
 
-			items = append(items, menuItem{title: "About", btn: &menu.about})
+			items = append(items, menuItem{title: "关于", btn: &menu.about})
 
 			return layoutMenu(ui.theme, gtx, items, func(gtx C) D {
 				var expiryStr string
 				const fmtStr = time.Stamp
 				switch {
 				case expiry.IsZero():
-					expiryStr = "Expires: (never)"
+					expiryStr = "过期日: (永不过期)"
 				case time.Now().After(expiry):
 					expiryStr = fmt.Sprintf("Expired: %s", expiry.Format(fmtStr))
 				default:
-					expiryStr = fmt.Sprintf("Expires: %s", expiry.Format(fmtStr))
+					expiryStr = fmt.Sprintf("过期日: %s", expiry.Format(fmtStr))
 				}
 				l := material.Caption(ui.theme, expiryStr)
 				l.Color = rgb(0x8f8f8f)
@@ -1499,17 +1499,17 @@ func (ui *UI) layoutTop(gtx layout.Context, sysIns system.Insets, state *Backend
 func statusString(state ipn.State) string {
 	switch state {
 	case ipn.Stopped:
-		return "Stopped"
+		return "已断开"
 	case ipn.Starting:
-		return "Starting..."
+		return "启动中..."
 	case ipn.Running:
-		return "Active"
+		return "已连接"
 	case ipn.NeedsMachineAuth:
-		return "Awaiting Approval"
+		return "等待机器认证"
 	case ipn.NeedsLogin:
 		return "蜃境网络"
 	default:
-		return "Loading..."
+		return "加载中..."
 	}
 }
 
