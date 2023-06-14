@@ -832,7 +832,7 @@ func (ui *UI) layoutSignIn(gtx layout.Context, state *BackendState) layout.Dimen
 			layout.Rigid(func(gtx C) D {
 				label := "Sign in with other"
 				if !googleSignInEnabled() {
-					label = "Sign in"
+					label = "登录"
 				}
 				return ui.withLoader(gtx, ui.signinType == webSignin, func(gtx C) D {
 					return border.Layout(gtx, func(gtx C) D {
@@ -1209,20 +1209,20 @@ func (ui *UI) layoutAboutDialog(gtx layout.Context, sysIns system.Insets) {
 							Left:   unit.Dp(20),
 							Bottom: unit.Dp(16),
 						}.Layout(gtx, func(gtx C) D {
-							l := material.Body1(ui.theme, "About")
+							l := material.Body1(ui.theme, "关于")
 							l.Font.Weight = text.Bold
 							return l.Layout(gtx)
 						})
 					}),
 					layout.Rigid(func(gtx C) D {
 						return layout.UniformInset(unit.Dp(16)).Layout(gtx, func(gtx C) D {
-							return material.Body1(ui.theme, "version "+version.Short()).Layout(gtx)
+							return material.Body1(ui.theme, "软件版本 "+version.Short()).Layout(gtx)
 						})
 					}),
 					layout.Rigid(func(gtx C) D {
 						return material.Clickable(gtx, &ui.ossLicenses, func(gtx C) D {
 							return layout.UniformInset(unit.Dp(16)).Layout(gtx, func(gtx C) D {
-								return material.Body1(ui.theme, "Open Source Licenses").Layout(gtx)
+								return material.Body1(ui.theme, "开源许可证").Layout(gtx)
 							})
 						})
 					}),
@@ -1305,11 +1305,11 @@ func (ui *UI) layoutMenu(gtx layout.Context, sysIns system.Insets, expiry time.T
 			}
 			if needsLogin {
 				var items []menuItem
-				title := "Tailscale " + version.Short()
+				title := "蜃境 " + version.Short()
 				if ui.menu.showDebugMenu {
-					items = append(items, menuItem{title: "Change server", btn: &menu.useLoginServer})
+					items = append(items, menuItem{title: "切换登录服务器", btn: &menu.useLoginServer})
 				}
-				items = append(items, menuItem{title: "About", btn: &menu.about})
+				items = append(items, menuItem{title: "关于", btn: &menu.about})
 				return layoutMenu(ui.theme, gtx, items, func(gtx C) D {
 					l := material.Caption(ui.theme, title)
 					return l.Layout(gtx)
@@ -1319,7 +1319,7 @@ func (ui *UI) layoutMenu(gtx layout.Context, sysIns system.Insets, expiry time.T
 				{title: "拷贝我的IP地址到剪切板", btn: &menu.copy},
 			}
 			if showExits {
-				items = append(items, menuItem{title: "Use exit node...", btn: &menu.exits})
+				items = append(items, menuItem{title: "使用出口节点...", btn: &menu.exits})
 			}
 			items = append(items, menuItem{title: "设置", btn: &menu.preferences})
 			items = append(items,
@@ -1345,7 +1345,7 @@ func (ui *UI) layoutMenu(gtx layout.Context, sysIns system.Insets, expiry time.T
 				case expiry.IsZero():
 					expiryStr = "过期日: (永不过期)"
 				case time.Now().After(expiry):
-					expiryStr = fmt.Sprintf("Expired: %s", expiry.Format(fmtStr))
+					expiryStr = fmt.Sprintf("已过期: %s", expiry.Format(fmtStr))
 				default:
 					expiryStr = fmt.Sprintf("过期日: %s", expiry.Format(fmtStr))
 				}
@@ -1514,7 +1514,7 @@ func statusString(state ipn.State) string {
 }
 
 func (ui *UI) showCopied(gtx layout.Context, addr string) {
-	ui.showMessage(gtx, fmt.Sprintf("Copied %s", addr))
+	ui.showMessage(gtx, fmt.Sprintf("已拷贝 %s", addr))
 }
 
 // layoutLocal lays out the information box about the local node's
