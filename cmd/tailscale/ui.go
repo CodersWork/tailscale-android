@@ -368,8 +368,8 @@ func (ui *UI) layout(gtx layout.Context, sysIns system.Insets, state *clientStat
 		userID = netmap.User()
 		expiry = netmap.Expiry
 		localName = netmap.SelfNode.DisplayName(false)
-		if addrs := netmap.Addresses; len(addrs) > 0 {
-			localAddr = addrs[0].Addr().String()
+		if addrs := netmap.SelfNode.Addresses(); addrs.Len() > 0 {
+			localAddr = addrs.At(0).Addr().String()
 		}
 	}
 	if p := state.backend.Prefs; p != nil {
@@ -431,9 +431,9 @@ func (ui *UI) layout(gtx layout.Context, sysIns system.Insets, state *clientStat
 		ui.runningExit = !ui.runningExit
 		events = append(events, BeExitNodeEvent(ui.runningExit))
 		if ui.runningExit {
-			ui.showMessage(gtx, "Running exit node")
+			ui.showMessage(gtx, "做为出口节点运行")
 		} else {
-			ui.showMessage(gtx, "Stopped running exit node")
+			ui.showMessage(gtx, "停止运行出口节点")
 		}
 	}
 
@@ -664,10 +664,10 @@ func (ui *UI) layoutExitStatus(gtx layout.Context, state *BackendState) layout.D
 	case ExitNone:
 		return D{}
 	case ExitOffline:
-		text = "Exit node offline"
+		text = "出口节点离线"
 		bg = rgb(0xc65835)
 	case ExitOnline:
-		text = "Using exit node"
+		text = "使用出口节点"
 		bg = rgb(0x338b51)
 	}
 	return material.Clickable(gtx, &ui.openExitDialog, func(gtx C) D {
@@ -1038,7 +1038,7 @@ func (ui *UI) layoutExitNodeDialog(gtx layout.Context, sysIns system.Insets, exi
 							Left:   unit.Dp(20),
 							Bottom: unit.Dp(16),
 						}.Layout(gtx, func(gtx C) D {
-							l := material.Body1(ui.theme, "Use exit node...")
+							l := material.Body1(ui.theme, "使用出口节点...")
 							l.Font.Weight = text.Bold
 							return l.Layout(gtx)
 						})
@@ -1049,7 +1049,7 @@ func (ui *UI) layoutExitNodeDialog(gtx layout.Context, sysIns system.Insets, exi
 						n := len(exits) + 2
 						return d.list.Layout(gtx, n, func(gtx C, idx int) D {
 							if idx == 0 {
-								btn := material.CheckBox(ui.theme, &ui.exitLAN, "Allow LAN access")
+								btn := material.CheckBox(ui.theme, &ui.exitLAN, "允许局域网访问")
 								return layout.Inset{
 									Right:  unit.Dp(16),
 									Left:   unit.Dp(16),
@@ -1468,7 +1468,7 @@ func (ui *UI) layoutSearchbar(gtx layout.Context, sysIns system.Insets) layout.D
 							return ui.icons.search.Layout(gtx, col)
 						}),
 						layout.Flexed(1,
-							material.Editor(ui.theme, &ui.search, "Search by machine name...").Layout,
+							material.Editor(ui.theme, &ui.search, "按机器名搜索...").Layout,
 						),
 					)
 				})

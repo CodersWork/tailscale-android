@@ -128,7 +128,7 @@ toolchain: $(TOOLCHAINDIR)/bin/go
 android/libs:
 	mkdir -p android/libs
 
-$(AAR): toolchain checkandroidsdk android/libs
+$(AAR): toolchain android/libs
 	go run gioui.org/cmd/gogio \
 		-ldflags "-X tailscale.com/version.longStamp=$(VERSIONNAME) -X tailscale.com/version.shortStamp=$(VERSIONNAME_SHORT) -X tailscale.com/version.gitCommitStamp=$(TAILSCALE_COMMIT) -X tailscale.com/version.extraGitCommitStamp=$(OUR_VERSION)" \
 		-buildmode archive -target android -appid $(APPID) -tags novulkan,tailscale_go -o $@ github.com/tailscale/tailscale-android/cmd/tailscale
