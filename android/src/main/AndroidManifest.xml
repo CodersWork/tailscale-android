@@ -3,6 +3,9 @@
 	<queries>
 		<package android:name="com.alibaba.android.rimet" />
 	</queries>
+	<queries>
+		<package android:name="com.tencent.mm" />
+	</queries>
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 	<uses-permission android:name="android.permission.INTERNET" />
@@ -66,6 +69,16 @@
 			android:exported="true">  <!-- add this line -->
 		</activity>
 		<!-- 钉钉统一登录 sdk 回调 Activity -->
+		<!-- 微信登录 回调 Activity -->
+		<activity
+			android:name=".wxapi.WXEntryActivity"
+			android:label="@string/app_name"
+			android:theme="@android:style/Theme.Translucent.NoTitleBar"
+			android:exported="true"
+			android:taskAffinity="com.tailscale.ipn"
+			android:launchMode="singleTask">
+		</activity>
+		<!-- 微信登录 回调 Activity -->
 		<receiver android:name="IPNReceiver"
 			android:exported="true"
 		>
