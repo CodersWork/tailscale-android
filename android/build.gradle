@@ -1,18 +1,16 @@
 buildscript {
 	repositories {
 		google()
-		jcenter()
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'com.android.tools.build:gradle:8.0.2'
+		classpath 'com.android.tools.build:gradle:8.1.0'
 	}
 }
 
 allprojects {
 	repositories {
 		google()
-		jcenter()
 		mavenCentral()
 		flatDir {
 			dirs 'libs'
@@ -24,12 +22,12 @@ apply plugin: 'com.android.application'
 
 android {
 	ndkVersion "23.1.7779620"
-	compileSdkVersion 31
+	compileSdk 31
 	defaultConfig {
 		minSdkVersion 22
-		targetSdkVersion 31
-		versionCode 166
-		versionName "1.41.69-te3cb98213-g38061656a57"
+		targetSdkVersion 33
+		versionCode 175
+		versionName "1.47.108-td5ac18d2c-g4b67f47e88f"
 	}
 	compileOptions {
 		sourceCompatibility 1.8
@@ -45,7 +43,7 @@ android {
 			// The play flavor contains all features and is for the Play Store.
 		}
 	}
-	namespace 'com.tailscale.ipn'
+    namespace 'com.tailscale.ipn'
 }
 
 dependencies {

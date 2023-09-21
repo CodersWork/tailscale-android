@@ -111,9 +111,6 @@ public class App extends Application {
 				NetworkInfo active = cMgr.getActiveNetworkInfo();
 				// https://developer.android.com/training/monitoring-device-state/connectivity-status-type
 				boolean isConnected = active != null && active.isConnectedOrConnecting();
-				if (isConnected) {
-					((App) getApplicationContext()).autoConnect = false;
-				}
 				onConnectivityChanged(isConnected);
 			}
 
@@ -218,16 +215,8 @@ public class App extends Application {
 	// get user defined nickname from Settings
 	// returns null if not available
 	private String getUserConfiguredDeviceName() {
-		String nameFromSystemBluetooth = Settings.System.getString(getContentResolver(), "bluetooth_name");
-		String nameFromSecureBluetooth = Settings.Secure.getString(getContentResolver(), "bluetooth_name");
 		String nameFromSystemDevice = Settings.Secure.getString(getContentResolver(), "device_name");
-
-		if (!isEmpty(nameFromSystemBluetooth))
-			return nameFromSystemBluetooth;
-		if (!isEmpty(nameFromSecureBluetooth))
-			return nameFromSecureBluetooth;
-		if (!isEmpty(nameFromSystemDevice))
-			return nameFromSystemDevice;
+		if (!isEmpty(nameFromSystemDevice)) return nameFromSystemDevice;
 		return null;
 	}
 

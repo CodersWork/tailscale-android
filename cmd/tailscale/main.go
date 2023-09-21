@@ -188,18 +188,15 @@ type SetLoginServerEvent struct {
 
 // UIEvent types.
 type (
-	ToggleEvent                    struct{}
-	ReauthEvent                    struct{}
-	BugEvent                       struct{}
-	WebAuthEvent                   struct{}
-	GoogleAuthEvent                struct{}
-	LogoutEvent                    struct{}
-	OSSLicensesEvent               struct{}
-	BeExitNodeEvent                bool
-	ExitAllowLANEvent              bool
-	AllowIncomingTransactionsEvent bool
-	UseTailscaleDNSEvent           bool
-	UseTailscaleSubnetsEvent       bool
+	ToggleEvent       struct{}
+	ReauthEvent       struct{}
+	BugEvent          struct{}
+	WebAuthEvent      struct{}
+	GoogleAuthEvent   struct{}
+	LogoutEvent       struct{}
+	OSSLicensesEvent  struct{}
+	BeExitNodeEvent   bool
+	ExitAllowLANEvent bool
 )
 
 // serverOAuthID is the OAuth ID of the tailscale-android server, used
@@ -354,13 +351,15 @@ func (a *App) runBackend() error {
 		case n := <-notifications:
 			exitWasOnline := state.ExitStatus == ExitOnline
 			if p := n.Prefs; p != nil && n.Prefs.Valid() {
-				first := state.Prefs == nil
 				state.Prefs = p.AsStruct()
 				state.updateExitNodes()
-				if first {
-					state.Prefs.Hostname = a.hostname()
-					go b.backend.SetPrefs(state.Prefs)
-				}
+				a.setPrefs(state.Prefs)
+			}
+			first := state.Prefs == nil
+			if first {
+				state.Prefs = ipn.NewPrefs()
+				state.Prefs.Hostname = a.hostname()
+				go b.backend.SetPrefs(state.Prefs)
 				a.setPrefs(state.Prefs)
 			}
 			if s := n.State; s != nil {
@@ -437,15 +436,6 @@ func (a *App) runBackend() error {
 			case ExitAllowLANEvent:
 				state.Prefs.ExitNodeAllowLANAccess = bool(e)
 				go b.backend.SetPrefs(state.Prefs)
-			case UseTailscaleDNSEvent:
-				state.Prefs.CorpDNS = bool(e)
-				go b.backend.SetPrefs(state.Prefs)
-			case UseTailscaleSubnetsEvent:
-				state.Prefs.RouteAll = !bool(e)
-				go b.backend.SetPrefs(state.Prefs)
-			case AllowIncomingTransactionsEvent:
-				state.Prefs.ShieldsUp = !bool(e)
-				go b.backend.SetPrefs(state.Prefs)
 			case WebAuthEvent:
 				if !signingIn {
 					go b.backend.StartLoginInteractive()
@@ -464,7 +454,11 @@ func (a *App) runBackend() error {
 					}
 				}()
 			case LogoutEvent:
-				go b.backend.Logout()
+				go func() {
+					ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+					defer cancel()
+					b.backend.Logout(ctx)
+				}()
 			case ConnectEvent:
 				state.Prefs.WantRunning = e.Enable
 				go b.backend.SetPrefs(state.Prefs)
@@ -508,6 +502,17 @@ func (a *App) runBackend() error {
 						return nil // even on error. see big TODO above.
 					})
 				})
+				log.Printf("onConnect: rebind required")
+				// TODO(catzkorn): When we start the android application
+				// we bind sockets before we have access to the VpnService.protect()
+				// function which is needed to avoid routing loops. When we activate
+				// the service we get access to the protect, but do not retrospectively
+				// protect the sockets already opened, which breaks connectivity.
+				// As a temporary fix, we rebind and protect the magicsock.Conn on connect
+				// which restores connectivity.
+				// See https://github.com/tailscale/corp/issues/13814
+				b.backend.DebugRebind()
+
 				service = s
 				return nil
 			})
@@ -654,24 +659,25 @@ func (s *BackendState) updateExitNodes() {
 	}
 	hasMyExit := exitID == ""
 	s.Exits = nil
-	var peers []*tailcfg.Node
+	var peers []tailcfg.NodeView
 	if s.NetworkMap != nil {
 		peers = s.NetworkMap.Peers
 	}
 	for _, p := range peers {
 		canRoute := false
-		for _, r := range p.AllowedIPs {
+		for i := range p.AllowedIPs().LenIter() {
+			r := p.AllowedIPs().At(i)
 			if r == netip.MustParsePrefix("0.0.0.0/0") || r == netip.MustParsePrefix("::/0") {
 				canRoute = true
 				break
 			}
 		}
-		myExit := p.StableID == exitID
+		myExit := p.StableID() == exitID
 		hasMyExit = hasMyExit || myExit
 		exit := Peer{
 			Label:  p.DisplayName(true),
 			Online: canRoute,
-			ID:     p.StableID,
+			ID:     p.StableID(),
 		}
 		if myExit {
 			s.Exit = exit
@@ -1049,33 +1055,40 @@ func (a *App) updateState(act jni.Object, state *clientState) {
 
 	netmap := state.backend.NetworkMap
 	var (
-		peers []*tailcfg.Node
+		peers []tailcfg.NodeView
 		myID  tailcfg.UserID
 	)
 	if netmap != nil {
 		peers = netmap.Peers
-		myID = netmap.User
+		myID = netmap.User()
 	}
 	// Split into sections.
 	users := make(map[tailcfg.UserID]struct{})
 	var uiPeers []UIPeer
 	for _, p := range peers {
+		if p.Hostinfo().Valid() && p.Hostinfo().ShareeNode() {
+			// Don't show nodes that only exist in the netmap because they're
+			// owned by somebody the user shared a node with. We can't see their
+			// details (including their name) anyway, so there's nothing
+			// interesting to render.
+			continue
+		}
 		if q := state.query; q != "" {
 			// Filter peers according to search query.
-			host := strings.ToLower(p.Hostinfo.Hostname())
-			name := strings.ToLower(p.Name)
+			host := strings.ToLower(p.Hostinfo().Hostname())
+			name := strings.ToLower(p.Name())
 			var addr string
-			if len(p.Addresses) > 0 {
-				addr = p.Addresses[0].Addr().String()
+			if p.Addresses().Len() > 0 {
+				addr = p.Addresses().At(0).Addr().String()
 			}
 			if !strings.Contains(host, q) && !strings.Contains(name, q) && !strings.Contains(addr, q) {
 				continue
 			}
 		}
-		users[p.User] = struct{}{}
+		users[p.User()] = struct{}{}
 		uiPeers = append(uiPeers, UIPeer{
-			Owner: p.User,
-			Peer:  p,
+			Owner: p.User(),
+			Peer:  p.AsStruct(),
 		})
 	}
 	// Add section (user) headers.
@@ -1141,12 +1154,6 @@ func (a *App) processUIEvents(w *app.Window, events []UIEvent, act jni.Object, s
 		case BeExitNodeEvent:
 			requestBackend(e)
 		case ExitAllowLANEvent:
-			requestBackend(e)
-		case AllowIncomingTransactionsEvent:
-			requestBackend(e)
-		case UseTailscaleDNSEvent:
-			requestBackend(e)
-		case UseTailscaleSubnetsEvent:
 			requestBackend(e)
 		case WebAuthEvent:
 			a.store.WriteString(loginMethodPrefKey, loginMethodWeb)
