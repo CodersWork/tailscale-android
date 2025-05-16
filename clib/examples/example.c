@@ -2,10 +2,15 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "hilog/log.h"
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0x3200 // 全局domain宏，标识业务领域
+
 // --- AppContext named C function implementations (Go will call these directly) ---
 void app_log(const char *tag, const char *message)
 {
-	printf("[LOG][%s] %s\n", tag, message);
+	// printf("[LOG][%s] %s\n", tag, message);
+	OH_LOG_Print(LOG_APP, LOG_DOMAIN, tag, "%{public}s", message);
 }
 int app_encrypt_to_pref(const char *key, const char *value) { return 0; }
 char *app_decrypt_from_pref(const char *key) { return strdup("decrypted"); }
