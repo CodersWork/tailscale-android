@@ -27,7 +27,6 @@ import (
 	"tailscale.com/logtail"
 	"tailscale.com/net/dns"
 	"tailscale.com/net/netmon"
-	"tailscale.com/net/netns"
 	"tailscale.com/net/tsdial"
 	"tailscale.com/paths"
 	"tailscale.com/tsd"
@@ -195,20 +194,22 @@ func (a *App) runBackend(ctx context.Context) error {
 				// Still the same VPN instance, do nothing
 				break
 			}
-			netns.SetAndroidProtectFunc(func(fd int) error {
-				if !s.Protect(int32(fd)) {
-					// TODO(bradfitz): return an error back up to netns if this fails, once
-					// we've had some experience with this and analyzed the logs over a wide
-					// range of Android phones. For now we're being paranoid and conservative
-					// and do the JNI call to protect best effort, only logging if it fails.
-					// The risk of returning an error is that it breaks users on some Android
-					// versions even when they're not using exit nodes. I'd rather the
-					// relatively few number of exit node users file bug reports if Tailscale
-					// doesn't work and then we can look for this log print.
-					log.Printf("[unexpected] VpnService.protect(%d) returned false", fd)
-				}
-				return nil // even on error. see big TODO above.
-			})
+			/*
+				netns.SetAndroidProtectFunc(func(fd int) error {
+					if !s.Protect(int32(fd)) {
+						// TODO(bradfitz): return an error back up to netns if this fails, once
+						// we've had some experience with this and analyzed the logs over a wide
+						// range of Android phones. For now we're being paranoid and conservative
+						// and do the JNI call to protect best effort, only logging if it fails.
+						// The risk of returning an error is that it breaks users on some Android
+						// versions even when they're not using exit nodes. I'd rather the
+						// relatively few number of exit node users file bug reports if Tailscale
+						// doesn't work and then we can look for this log print.
+						log.Printf("[unexpected] VpnService.protect(%d) returned false", fd)
+					}
+					return nil // even on error. see big TODO above.
+				})
+			*/
 			log.Printf("onVPNRequested: rebind required")
 			// TODO(catzkorn): When we start the android application
 			// we bind sockets before we have access to the VpnService.protect()
@@ -233,7 +234,7 @@ func (a *App) runBackend(ctx context.Context) error {
 		case s := <-onDisconnect:
 			b.CloseTUNs()
 			if vpnService.service != nil && vpnService.service.ID() == s.ID() {
-				netns.SetAndroidProtectFunc(nil)
+				//netns.SetAndroidProtectFunc(nil)
 				vpnService.service = nil
 			}
 		case i := <-onDNSConfigChanged:
