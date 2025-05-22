@@ -1,11 +1,11 @@
-CGO_ENABLED=1
 GOOS = linux
 GOARCH = arm64
 OUT = output/libts.a
 
 all:
-	GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=$(CGO_ENABLED) CC=aarch64-linux-gnu-gcc \
-	CGO_CFLAGS="-I." go build -v -buildmode=c-archive -o $(OUT)
+	CC=/root/ohos-cli/sdk/default/openharmony/native/llvm/bin/aarch64-unknown-linux-ohos-clang \
+	GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=1 CGO_CFLAGS="-I." \
+	/root/golang_go/bin/go build -v -tlsmodegd -buildmode=c-archive -o $(OUT)
 
 clean:
 	rm -rf output

@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <unistd.h>  // for ssize_t
 
 // AppContext C function declarations (for Go->C calls)
 void app_log(const char *tag, const char *message);
@@ -168,19 +169,17 @@ typedef struct
 
 // --- InputStream vtable ---
 typedef struct input_stream input_stream;
-typedef ssize_t (*read_fn)(input_stream *self, uint8_t *buf, size_t len);
-typedef void (*input_stream_close_fn)(input_stream *self);
+typedef ssize_t (*read_fn)(struct input_stream *self, uint8_t *buf, size_t len);
+typedef void (*input_stream_close_fn)(struct input_stream *self);
 
-typedef struct
-{
+typedef struct input_stream_vtable {
 	read_fn read;
 	input_stream_close_fn close;
 } input_stream_vtable;
 
-typedef struct
-{
+typedef struct input_stream_handle {
 	input_stream_vtable *vtable;
-	input_stream *self;
+	struct input_stream *self;
 } input_stream_handle;
 
 // --- FilePart struct ---
