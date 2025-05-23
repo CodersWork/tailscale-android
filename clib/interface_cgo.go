@@ -24,12 +24,18 @@ extern char* app_get_syspolicy_string_array_json_value(const char* key);
 */
 import "C"
 import (
+	"encoding/json"
 	"errors"
+	"os"
 	"sync"
 	"unsafe"
 
 	"github.com/tailscale/tailscale-android/libtailscale"
 )
+
+const prefFilePath = "/data/storage/el2/base/files/pref.db"
+
+var prefFileLock sync.Mutex
 
 // --- AppContext Go implementation using named C functions ---
 type cgoAppContext struct{}
@@ -42,56 +48,91 @@ func (ctx *cgoAppContext) Log(tag, logLine string) {
 	C.app_log(cTag, cLogLine)
 }
 func (ctx *cgoAppContext) EncryptToPref(key, value string) error {
-	cKey := C.CString(key)
-	cValue := C.CString(value)
-	defer C.free(unsafe.Pointer(cKey))
-	defer C.free(unsafe.Pointer(cValue))
-	result := C.app_encrypt_to_pref(cKey, cValue)
-	if result != 0 {
-		return errors.New("failed to encrypt to pref")
+	prefFileLock.Lock()
+	defer prefFileLock.Unlock()
+
+	prefs := make(map[string]string)
+
+	// Read existing preferences file.
+	data, err := os.ReadFile(prefFilePath)
+	if err != nil {
+		if !os.IsNotExist(err) { // If error is not "file does not exist", return it.
+			return errors.New("failed to read pref file: " + err.Error())
+		}
+		// If file does not exist, prefs will remain empty, and a new file will be created.
+	} else {
+		// If file exists and is not empty, try to unmarshal its JSON content.
+		if len(data) > 0 {
+			if errUnmarshal := json.Unmarshal(data, &prefs); errUnmarshal != nil {
+				// File might be corrupted or not valid JSON. Return an error.
+				return errors.New("failed to unmarshal pref file (it might be corrupted or not valid JSON): " + errUnmarshal.Error())
+			}
+		}
+		// If file is empty, prefs remains an empty map, which is fine.
 	}
+
+	// Add or overwrite the key in the preferences map.
+	prefs[key] = value
+
+	// Marshal the updated preferences map back to JSON with indentation for readability.
+	updatedData, err := json.MarshalIndent(prefs, "", "  ")
+	if err != nil {
+		return errors.New("failed to marshal prefs to JSON: " + err.Error())
+	}
+
+	// Write the updated data back to the file.
+	// os.WriteFile creates the file if it doesn't exist, and truncates it if it does.
+	// 0600 permissions: owner can read/write.
+	if err := os.WriteFile(prefFilePath, updatedData, 0600); err != nil {
+		return errors.New("failed to write pref file: " + err.Error())
+	}
+
 	return nil
 }
 func (ctx *cgoAppContext) DecryptFromPref(key string) (string, error) {
-	cKey := C.CString(key)
-	defer C.free(unsafe.Pointer(cKey))
-	cValue := C.app_decrypt_from_pref(cKey)
-	if cValue == nil {
-		return "", errors.New("failed to decrypt from pref")
+	prefFileLock.Lock()
+	defer prefFileLock.Unlock()
+
+	prefs := make(map[string]string)
+
+	data, err := os.ReadFile(prefFilePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", errors.New("pref file does not exist or key not found") // Or a more specific error like "key not found"
+		}
+		return "", errors.New("failed to read pref file: " + err.Error())
 	}
-	defer C.free(unsafe.Pointer(cValue))
-	return C.GoString(cValue), nil
+
+	// If file is empty, the key cannot be found.
+	if len(data) == 0 {
+		return "", errors.New("pref file is empty or key not found")
+	}
+
+	if errUnmarshal := json.Unmarshal(data, &prefs); errUnmarshal != nil {
+		return "", errors.New("failed to unmarshal pref file (it might be corrupted or not valid JSON): " + errUnmarshal.Error())
+	}
+
+	value, ok := prefs[key]
+	if !ok {
+		return "", errors.New("key not found in prefs")
+	}
+
+	return value, nil
 }
 func (ctx *cgoAppContext) GetOSVersion() (string, error) {
-	cValue := C.app_get_os_version()
-	if cValue == nil {
-		return "", errors.New("failed to get OS version")
-	}
-	defer C.free(unsafe.Pointer(cValue))
-	return C.GoString(cValue), nil
+	return "HarmonyOS 5.0.0", nil
 }
 func (ctx *cgoAppContext) GetModelName() (string, error) {
-	cValue := C.app_get_model_name()
-	if cValue == nil {
-		return "", errors.New("failed to get model name")
-	}
-	defer C.free(unsafe.Pointer(cValue))
-	return C.GoString(cValue), nil
+	return "Emulator", nil
 }
 func (ctx *cgoAppContext) GetInstallSource() string {
-	cValue := C.app_get_install_source()
-	if cValue == nil {
-		return ""
-	}
-	defer C.free(unsafe.Pointer(cValue))
-	return C.GoString(cValue)
+	return ""
 }
 func (ctx *cgoAppContext) ShouldUseGoogleDNSFallback() bool {
-	return C.app_should_use_google_dns_fallback() != 0
+	return false
 }
 func (ctx *cgoAppContext) IsChromeOS() (bool, error) {
-	result := C.app_is_chrome_os()
-	return result != 0, nil
+	return false, nil
 }
 func (ctx *cgoAppContext) GetInterfacesAsString() (string, error) {
 	cValue := C.app_get_interfaces_as_string()
